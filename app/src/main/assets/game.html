@@ -239,20 +239,13 @@
     } else if (Date.now() - started > 8000) {
       clearInterval(timer);
       var box = document.getElementById('boot');
-      if (box) box.innerHTML = '<pre style="color:#ff6b6b;white-space:pre-wrap;text-align:left;line-height:1.7">' +
-        '游戏未能启动（等侯 8 秒）
-
-' +
-        '常见原因：这台手机的 Android System WebView 版本太旧，不支持 WebGL2 / ES module。
-
-' +
-        '处理办法：应用商店搜索「Android System WebView」更新到最新；
-' +
-        '或在 设置 → 应用设置 → 应用管理 → Android System WebView → 卸载更新，再更新一次。
-
-' +
-        '请把这一屏截图反馈。' +
-        '</pre>';
+      if (box) {
+        var pre = document.createElement('pre');
+        pre.style.cssText = 'color:#ff6b6b;white-space:pre-wrap;text-align:left;line-height:1.7';
+        pre.textContent = "\u6e38\u620f\u672a\u80fd\u542f\u52a8\uff08\u7b49\u5f85 8 \u79d2\uff09\n\n\u5e38\u89c1\u539f\u56e0\uff1a\u8fd9\u53f0\u624b\u673a\u7684 Android System WebView \u7248\u672c\u592a\u65e7\uff0c\u4e0d\u652f\u6301 WebGL2 \u6216 ES module\u3002\n\n\u5904\u7406\u529e\u6cd5\uff1a\u5e94\u7528\u5546\u5e97\u641c\u7d22\u300cAndroid System WebView\u300d\u66f4\u65b0\u5230\u6700\u65b0\uff1b\n\u6216 \u8bbe\u7f6e \u2192 \u5e94\u7528\u8bbe\u7f6e \u2192 \u5e94\u7528\u7ba1\u7406 \u2192 Android System WebView \u2192 \u5378\u8f7d\u66f4\u65b0\uff0c\u518d\u66f4\u65b0\u4e00\u6b21\u3002\n\n\u8bf7\u628a\u8fd9\u4e00\u5c4f\u622a\u56fe\u53cd\u9988\u3002";
+        box.textContent = '';
+        box.appendChild(pre);
+      }
     }
   }, 300);
 })();
