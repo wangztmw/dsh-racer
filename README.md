@@ -15,15 +15,15 @@ GitHub 上新建一个空仓库（公开私有都行；私有仓库每月 2000 �
 
 ### 2. 推代码
 
+工程已经初始化成 git 仓库、提交好了（分支 `main`），你只需要加远端然后推：
+
 ```bash
 cd ~/Desktop/dsh_wksp/racer-android
-git init
-git add .
-git commit -m "DSH 赛车安卓版"
-git branch -M main
 git remote add origin git@github.com:你的用户名/你的仓库名.git
 git push -u origin main
 ```
+
+如果用的是 HTTPS 或者别的协议，把 origin 地址换成对应的即可。
 
 ### 3. 等编译
 
