@@ -225,6 +225,39 @@
 </style>
 </head>
 <body>
+<div id="boot" style="position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:#05070C;color:#8ea3c2;font:13px ui-monospace,monospace;text-align:center;padding:24px">
+正在加载游戏…
+</div>
+<script>
+(function () {
+  var started = Date.now();
+  var timer = setInterval(function () {
+    if (window.__dbg) {
+      clearInterval(timer);
+      var b = document.getElementById('boot');
+      if (b) b.remove();
+    } else if (Date.now() - started > 8000) {
+      clearInterval(timer);
+      var box = document.getElementById('boot');
+      if (box) box.innerHTML = '<pre style="color:#ff6b6b;white-space:pre-wrap;text-align:left;line-height:1.7">' +
+        '游戏未能启动（等侯 8 秒）
+
+' +
+        '常见原因：这台手机的 Android System WebView 版本太旧，不支持 WebGL2 / ES module。
+
+' +
+        '处理办法：应用商店搜索「Android System WebView」更新到最新；
+' +
+        '或在 设置 → 应用设置 → 应用管理 → Android System WebView → 卸载更新，再更新一次。
+
+' +
+        '请把这一屏截图反馈。' +
+        '</pre>';
+    }
+  }, 300);
+})();
+</script>
+
 <canvas id="app"></canvas>
 
 <div id="hud">
