@@ -2,7 +2,6 @@ package com.zhuanz1.racer
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -10,7 +9,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
-import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -20,49 +18,31 @@ import android.webkit.WebViewClient
 import android.widget.TextView
 
 /**
- * 整个 App 就是一个全屏 WebView。
+ * 整个 App 就是一个全屏 WebView，加载 assets/game.html。
  *
- * 游戏资源打在 assets 里，由 [AssetServer] 走本地回环 HTTP 提供，
- * 这样 ES module / importmap / WebGL / WebAudio 的行为和桌面浏览器一致。
+ * 那个 HTML 是自包含的（CSS、JS、three.js 全部内联），所以在 file:// 下可以直接跑：
+ * WebView 只是不允许 file 页面去加载外部模块，内联脚本没有任何限制。
+ * 也因此不需要本地服务器、不需要 INTERNET 权限。
  */
 class MainActivity : Activity() {
 
-    private companion object {
-        const val TAG = "DSHRacer"
-    }
-
-    private var server: AssetServer? = null
     private lateinit var web: WebView
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 玩的时候别让屏幕灭掉
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         applyImmersiveMode()
-
-        val assets = try {
-            AssetServer(this)
-        } catch (t: Throwable) {
-            // 没有 INTERNET 权限时 ServerSocket 会在这里抛出 EACCES
-            showFatal("本地资源服务启动失败：${t.javaClass.simpleName} ${t.message}")
-            return
-        }
-        server = assets
 
         web = WebView(this).apply {
             setBackgroundColor(0xFF05070C.toInt())
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
+                allowFileAccess = true          // 读 assets 里的 game.html 必须打开
                 mediaPlaybackRequiresUserGesture = false
-                useWideViewPort = true
-                loadWithOverviewMode = true
                 cacheMode = WebSettings.LOAD_NO_CACHE
-                allowFileAccess = false
-                allowContentAccess = false
-                // 触屏设备上游戏会显示虚拟按键，禁止双击缩放免得误触
                 setSupportZoom(false)
                 builtInZoomControls = false
                 displayZoomControls = false
@@ -73,41 +53,33 @@ class MainActivity : Activity() {
                     request: WebResourceRequest,
                     error: WebResourceError,
                 ) {
-                    Log.e(TAG, "webview error ${error.errorCode} ${error.description} ${request.url}")
-                    if (request.isForMainFrame) showLoadFailure(error.errorCode, error.description.toString())
+                    Log.e(TAG, "load error ${error.errorCode} ${error.description} ${request.url}")
+                    if (request.isForMainFrame) {
+                        showMessage("游戏加载失败\n\n错误码 ${error.errorCode}\n${error.description}")
+                    }
                 }
             }
             webChromeClient = object : WebChromeClient() {
-                override fun onConsoleMessage(m: ConsoleMessage): Boolean {
+                override fun onConsoleMessage(m: android.webkit.ConsoleMessage): Boolean {
                     Log.d(TAG, "console: ${m.message()} @${m.sourceId()}:${m.lineNumber()}")
                     return true
                 }
             }
-            loadUrl("http://127.0.0.1:${assets.port}/")
+            loadUrl("file:///android_asset/game.html")
         }
 
         setContentView(web)
     }
 
-    /** 页面本身加载失败（端口没起来、资源缺失等）时给出可见提示，别只留一块黑屏。 */
-    private fun showLoadFailure(code: Int, description: String) {
-        val html = "<html><body style='background:#05070C;color:#FF6B6B;font:14px monospace;padding:28px;white-space:pre-wrap'>" +
-            "游戏资源加载失败\n\n错误码 $code\n$description\n\n" +
-            "请把这一屏截图反馈，或连接电脑用 chrome://inspect 查看控制台。" +
-            "</body></html>"
-        web.loadUrl("data:text/html;charset=utf-8," + Uri.encode(html))
-    }
-
-    private fun showFatal(message: String) {
+    private fun showMessage(text: String) {
         val view = TextView(this).apply {
-            text = "应用启动失败\n\n$message\n\n请截图反馈。"
+            this.text = text
             setTextColor(0xFFFF6B6B.toInt())
             textSize = 14f
             setPadding(56, 120, 56, 56)
             setBackgroundColor(0xFF05070C.toInt())
         }
         setContentView(view)
-        Log.e(TAG, message)
     }
 
     private fun applyImmersiveMode() {
@@ -140,14 +112,16 @@ class MainActivity : Activity() {
     }
 
     override fun onPause() {
-        // 后台时让 WebGL / rAF 停下，省电
         if (::web.isInitialized) web.onPause()
         super.onPause()
     }
 
     override fun onDestroy() {
-        server?.stop()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val TAG = "DSHRacer"
     }
 }
