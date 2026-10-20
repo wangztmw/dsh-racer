@@ -43,23 +43,62 @@ done
 
 echo "== 3/3 Kotlin 括号配平"
 if python3 - <<'PY'
-import pathlib, re, sys
+import pathlib, sys
 
-def strip(t):
-    t = re.sub(r'/\*.*?\*/', '', t, flags=re.S)
-    t = re.sub(r'//[^\n]*', '', t)
-    t = re.sub(r'"""(?:.|\n)*?"""', '""', t)
-    t = re.sub(r'"(?:\\.|[^"\\])*"', '""', t)
-    t = re.sub(r"'(?:\\.|[^'\\])'", "''", t)
-    return t
+
+def strip_source(text):
+    """按字符扫描，正确跳过字符串 / 字符字面量 / 注释。
+
+    之前的正则版本会把 "http://127.0.0.1:..." 里的 // 当成行注释，
+    连后面的引号和括号一起吃掉，导致括号配平误报。
+    """
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if c in ('"', "'"):
+            quote = c
+            if text.startswith(quote * 3, i):          # 三引号字符串
+                i += 3
+                while i < n and not text.startswith(quote * 3, i):
+                    i += 1
+                i += 3
+            else:
+                i += 1
+                while i < n:
+                    if text[i] == '\\':
+                        i += 2
+                        continue
+                    if text[i] == quote:
+                        i += 1
+                        break
+                    i += 1
+            out.append('""')
+            continue
+        if c == '/' and text.startswith('//', i):
+            while i < n and text[i] != '\n':
+                i += 1
+            continue
+        if c == '/' and text.startswith('/*', i):
+            i += 2
+            while i + 1 < n and not text.startswith('*/', i):
+                i += 1
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return ''.join(out)
+
 
 bad = False
 for f in sorted(pathlib.Path('app/src/main/java').rglob('*.kt')):
-    s = strip(f.read_text())
-    for o, c, n in [('{', '}', 'braces'), ('(', ')', 'parens'), ('[', ']', 'brackets')]:
+    s = strip_source(f.read_text())
+    counts = []
+    for o, c, name in [('{', '}', 'braces'), ('(', ')', 'parens'), ('[', ']', 'brackets')]:
         if s.count(o) != s.count(c):
-            print(f'  ✗ {f}: {n} {s.count(o)} vs {s.count(c)}')
+            print(f'  ✗ {f}: {name} {s.count(o)} vs {s.count(c)}')
             bad = True
+    print(f'  · {f.name}')
 sys.exit(1 if bad else 0)
 PY
 then echo "  ✓ 配平"; else fail=1; fi
