@@ -1,0 +1,61 @@
+name: 构建 APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+# 打 tag 时要创建 Release 并上传 APK，需要写权限
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v7
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 安装 Android SDK 组件
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
+
+      - name: 准备 Gradle 8.13
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.13'
+
+      # debug 签名默认每次随机生成，那样每个版本签名都不同、装新版得先卸载。
+      # 缓存住它，后续版本才能直接覆盖升级。
+      - name: 缓存 debug 签名密钥
+        uses: actions/cache@v6
+        with:
+          path: ~/.android/debug.keystore
+          key: racer-debug-keystore-v1
+
+      - name: 编译
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: racer-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      # 打 tag 时额外发一个 Release，APK 直接挂在上面
+      - name: 发布 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true

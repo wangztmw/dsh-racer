@@ -1,0 +1,216 @@
+  :root {
+    /* HUD scale, stepped by viewport width (CSS can't derive a unitless ratio from vw) */
+    --hud: 1;
+    --accent: #ff2d55;
+    --accent2: #19e3b1;
+    --ink: #eaf1ff;
+    --panel: rgba(10, 14, 24, 0.55);
+    --stroke: rgba(160, 190, 230, 0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #05070c;
+    font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    color: var(--ink); -webkit-font-smoothing: antialiased;
+  }
+  #app { display: block; width: 100vw; height: 100vh; }
+
+  #hud { position: fixed; inset: 0; pointer-events: none; user-select: none; }
+  .panel {
+    position: absolute; background: var(--panel); border: 1px solid var(--stroke);
+    border-radius: 14px; backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    box-shadow: 0 10px 34px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+
+  /* ---- top-left: timing ---- */
+  #timing { top: 20px; left: 20px; padding: 12px 16px 12px; min-width: 208px;
+    transform: scale(var(--hud)); transform-origin: top left; }
+  #timing .row { display: flex; justify-content: space-between; gap: 18px; font-size: 11px; letter-spacing: .16em; color: #93a7c4; }
+  #timing .row + .row { margin-top: 6px; }
+  #timing .val { color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: .04em; font-size: 13px; }
+  #lapNow .val { color: #fff; font-size: 19px; font-weight: 600; letter-spacing: .02em; }
+  #timing .best .val { color: var(--accent2); }
+  #timing .lapno .val { color: var(--accent); }
+
+  /* ---- bottom-right: speedo ---- */
+  #speedo { right: 20px; bottom: 20px; width: 236px; height: 236px; border-radius: 50%; display: grid; place-items: center;
+    transform: scale(var(--hud)); transform-origin: bottom right; }
+  #speedo svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(135deg); }
+  #speedo .readout { position: relative; text-align: center; transform: translateY(2px); }
+  #spdVal { font-size: 62px; font-weight: 700; line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  #spdUnit { font-size: 10px; letter-spacing: .34em; color: #8ea3c2; margin-top: 4px; }
+  #gearVal { position: absolute; right: 44px; top: 40%; font-size: 22px; color: var(--accent); font-weight: 700; }
+  #gearLbl { position: absolute; right: 46px; top: calc(40% + 26px); font-size: 8px; letter-spacing: .2em; color: #7f93b0; }
+
+  /* ---- bottom-left: minimap ---- */
+  #mapWrap { left: 20px; bottom: 20px; width: 190px; height: 190px; padding: 8px;
+    transform: scale(var(--hud)); transform-origin: bottom left; }
+  #minimap { width: 100%; height: 100%; display: block; }
+
+  /* ---- drift ---- */
+  #drift { right: 20px; bottom: calc(236px * var(--hud) + 34px); padding: 8px 14px;
+    transform: scale(var(--hud)); transform-origin: bottom right; font-size: 11px; letter-spacing: .18em; color: #8ea3c2; opacity: 0; transition: opacity .18s; }
+  #drift.on { opacity: 1; }
+  #drift b { color: var(--accent2); font-size: 15px; letter-spacing: .04em; }
+
+  /* ---- countdown ---- */
+  #center { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; }
+  #count { font-size: clamp(72px, 17vw, 148px); font-weight: 800; letter-spacing: -.04em; opacity: 0;
+    text-shadow: 0 0 60px rgba(255,45,85,.55); }
+  #count.pop { animation: pop .9s cubic-bezier(.2,.9,.25,1) both; }
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(1.75); filter: blur(6px); }
+    25% { opacity: 1; transform: scale(1); filter: blur(0); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+
+  /* ---- splash ---- */
+  #splash {
+    position: fixed; inset: 0; display: grid; place-items: start center; z-index: 20; padding-top: 9vh;
+    overflow-y: auto;   /* last-resort scroll if the window is shorter than the menu */
+    background: linear-gradient(180deg, rgba(4,7,14,.82) 0%, rgba(4,7,14,.5) 42%, rgba(4,7,14,.28) 100%);
+    transition: opacity .5s ease, visibility .5s;
+  }
+  #splash.hide { opacity: 0; visibility: hidden; }
+  #splash .box { text-align: center; max-width: min(800px, 94vw); padding: 0 16px; }
+  #splash h1 {
+    margin: 0; font-size: clamp(26px, 5.2vw, 62px); font-weight: 800; letter-spacing: -.04em; line-height: .95;
+    white-space: nowrap;
+    background: linear-gradient(100deg, #fff 10%, #ff8ba0 45%, #ff2d55 62%, #19e3b1 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #splash h2 { margin: 6px 0 26px; font-size: 11px; letter-spacing: .52em; color: #8ea3c2; font-weight: 400; }
+  #splash p { font-size: 12px; line-height: 2.1; color: #a8bcd8; letter-spacing: .06em; margin: 0 0 26px; }
+  kbd {
+    display: inline-block; min-width: 22px; padding: 2px 7px; margin: 0 2px; border-radius: 6px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16);
+    border-bottom-width: 2px; font: inherit; font-size: 11px; color: #fff;
+  }
+  #hud { transition: opacity .35s ease; }
+  #hud.dim { opacity: 0; }
+  #tracks { display: flex; gap: 10px; justify-content: center; margin: 0 0 20px; flex-wrap: wrap; }
+  .track {
+    pointer-events: auto; cursor: pointer; font: inherit; text-align: left; flex: 1 1 200px;
+    background: rgba(12,18,30,.72); border: 1px solid rgba(160,190,230,.18);
+    border-radius: 12px; padding: 12px 16px; min-width: 200px; max-width: 240px; color: #cfe0ff;
+    transition: transform .15s, border-color .15s, background .15s;
+  }
+  .track:hover { transform: translateY(-2px); border-color: rgba(160,190,230,.4); }
+  .track.sel { border-color: var(--accent2); background: rgba(25,227,177,.1); box-shadow: 0 0 0 1px rgba(25,227,177,.35) inset; }
+  .track b { display: block; font-size: 13px; letter-spacing: .16em; color: #fff; }
+  .track span { display: block; font-size: 11px; color: #9fb3cd; margin-top: 3px; letter-spacing: .08em; }
+  .track em { display: block; font-style: normal; font-size: 10px; color: var(--accent2); margin-top: 6px; letter-spacing: .12em; }
+
+  #go {
+    pointer-events: auto; cursor: pointer; font: inherit; font-size: 13px; letter-spacing: .3em;
+    color: #06080e; background: linear-gradient(180deg, #ffffff, #cfe0ff); border: 0;
+    padding: 15px 44px; border-radius: 999px; font-weight: 700;
+    box-shadow: 0 14px 44px rgba(120,180,255,.35); transition: transform .15s, box-shadow .15s;
+  }
+  #go:hover { transform: translateY(-2px); box-shadow: 0 18px 54px rgba(120,180,255,.5); }
+  #go:active { transform: translateY(0); }
+  #splash .hint { margin-top: 18px; font-size: 10px; letter-spacing: .2em; color: #6d819c; }
+
+  /* ---- results ---- */
+  #results { position: fixed; inset: 0; display: none; place-items: center; z-index: 15; pointer-events: none;
+    background: linear-gradient(180deg, rgba(4,7,14,.55) 0%, rgba(4,7,14,.3) 55%, rgba(4,7,14,.45) 100%); }
+  #results.show { display: grid; }
+  #results .card { pointer-events: auto; min-width: 0; width: min(420px, 92vw); padding: 24px 26px; text-align: center; }
+  #results h3 { margin: 0 0 4px; font-size: 12px; letter-spacing: .48em; color: var(--accent2); font-weight: 400; }
+  #results .total { font-size: 46px; font-weight: 700; letter-spacing: -.03em; margin: 10px 0 2px; }
+  #results .sub { font-size: 11px; letter-spacing: .18em; color: #8ea3c2; }
+  #results ul { list-style: none; padding: 0; margin: 22px 0 20px; border-top: 1px solid var(--stroke); }
+  #results li { display: flex; justify-content: space-between; padding: 9px 2px; font-size: 12px; border-bottom: 1px solid rgba(160,190,230,.08); letter-spacing: .1em; color: #a8bcd8; }
+  #results li span:last-child { color: #fff; font-variant-numeric: tabular-nums; }
+  #results li.best span:last-child { color: var(--accent2); }
+  #changeTrack { margin-top: 10px; margin-left: 8px; cursor: pointer; font: inherit; font-size: 11px;
+    letter-spacing: .22em; color: #cfe0ff; background: rgba(255,255,255,.08); border: 1px solid rgba(160,190,230,.3);
+    padding: 11px 24px; border-radius: 999px; }
+  #changeTrack:hover { background: rgba(255,255,255,.14); }
+  #again { margin-top: 6px; pointer-events: auto; cursor: pointer; font: inherit; font-size: 12px; letter-spacing: .26em;
+    color: #06080e; background: linear-gradient(180deg,#fff,#cfe0ff); border: 0; padding: 12px 34px; border-radius: 999px; font-weight: 700; }
+
+  #toast { position: fixed; left: 50%; top: 76px; transform: translateX(-50%); font-size: 11px; letter-spacing: .26em;
+    color: #cfe0ff; background: var(--panel); border: 1px solid var(--stroke); padding: 9px 18px; border-radius: 999px;
+    opacity: 0; transition: opacity .25s; }
+  #toast.on { opacity: 1; }
+
+  #touches { position: fixed; inset: auto 0 0 0; display: none; justify-content: space-between; padding: 18px; z-index: 12; }
+  #touches .pad { display: flex; gap: 14px; pointer-events: auto; }
+  #touches button { width: 68px; height: 68px; border-radius: 50%; font: inherit; font-size: 18px; color: #fff;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); backdrop-filter: blur(6px); }
+  /* ---- responsive HUD ---- */
+  @media (max-width: 1280px) { :root { --hud: 0.9; } }
+  @media (max-width: 1080px) { :root { --hud: 0.82; } }
+  @media (max-width: 900px)  { :root { --hud: 0.72; } }
+  @media (max-width: 760px)  { :root { --hud: 0.62; } }
+  @media (max-width: 620px)  { :root { --hud: 0.54; } }
+  @media (max-width: 500px)  { :root { --hud: 0.48; } }
+  @media (max-height: 480px) { :root { --hud: 0.6; } }
+  @media (max-height: 380px) { :root { --hud: 0.5; } }
+  /* 小地图始终保留，只跟着 HUD 一起缩；极窄时再多收一点给它腾地方 */
+  @media (max-width: 560px) {
+    #mapWrap { transform: scale(calc(var(--hud) * 0.82)); }
+  }
+  /* 只保留圈数和当前圈速 */
+  @media (max-width: 760px), (max-height: 430px) {
+    #timing { min-width: 0; }
+    #timing .row.best, #timing .row.last, #timing .row.total { display: none; }
+    #drift { display: none; }
+  }
+  /* 极窄：计时面板整体让位，只留速度表 */
+  @media (max-width: 560px) {
+    #timing { display: none; }
+  }
+  /* 触屏设备才显示虚拟按键，不再按窗口宽度判断 */
+  @media (hover: none) and (pointer: coarse) {
+    #touches { display: flex; }
+    /* 给底部虚拟按键让出位置，免得压在小地图 / 速度表上 */
+    #mapWrap, #speedo { bottom: 96px; }
+    #drift { bottom: calc(236px * var(--hud) + 34px + 96px); }
+  }
+  @media (max-height: 400px) {
+    #speedo { transform: scale(calc(var(--hud) * 0.85)); }
+  }
+
+
+/* ---- very small windows: menu must stay usable ---- */
+@media (max-width: 720px) {
+  #splash { padding-top: 6vh; }
+  #splash h1 { font-size: clamp(22px, 7vw, 40px); }
+  #splash h2 { letter-spacing: .3em; margin-bottom: 14px; }
+  #splash p { font-size: 11px; line-height: 1.9; margin-bottom: 16px; }
+  #tracks { gap: 8px; margin-bottom: 14px; }
+  .track { flex: 1 1 150px; min-width: 0; padding: 9px 12px; }
+  .track b { font-size: 11px; }
+  #go { padding: 12px 30px; font-size: 12px; }
+  #results .total { font-size: 34px; }
+}
+@media (max-width: 460px) {
+  #splash .hint { display: none; }
+  .track span { display: none; }
+}
+
+
+/* ---- short windows: the menu has to fit or scroll ---- */
+@media (max-height: 620px) {
+  #splash { padding-top: 4vh; }
+  #splash h1 { font-size: clamp(20px, 5.5vw, 44px); }
+  #splash h2 { margin-bottom: 12px; letter-spacing: .32em; }
+  #splash p { display: none; }          /* key hints are the first thing to go */
+  #tracks { gap: 8px; margin-bottom: 12px; }
+  .track { padding: 7px 11px; }
+  .track span { display: none; }        /* keep name + length only */
+  .track em { margin-top: 3px; }
+  #go { padding: 11px 26px; font-size: 12px; }
+}
+@media (max-height: 460px) {
+  #splash { padding-top: 5vh; }
+  #splash .hint { margin-top: 8px; font-size: 9px; }
+  #splash h2 { display: none; }
+  #splash h1 { font-size: clamp(18px, 5vw, 30px); }
+  .track b { font-size: 10px; letter-spacing: .1em; }
+  .track em { font-size: 9px; }
+  #tracks { gap: 6px; margin-bottom: 10px; }
+}

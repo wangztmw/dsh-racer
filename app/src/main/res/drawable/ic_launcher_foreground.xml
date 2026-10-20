@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 黑白方格旗：5x3 的棋子格，居中在 108dp 的图标安全区内 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#D81F32" android:pathData="M24,38h18v12h-18z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M42,38h18v12h-18z" />
+    <path android:fillColor="#D81F32" android:pathData="M60,38h18v12h-18z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M24,50h18v12h-18z" />
+    <path android:fillColor="#D81F32" android:pathData="M42,50h18v12h-18z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M60,50h18v12h-18z" />
+    <path android:fillColor="#D81F32" android:pathData="M24,62h18v12h-18z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M42,62h18v12h-18z" />
+    <path android:fillColor="#D81F32" android:pathData="M60,62h18v12h-18z" />
+</vector>
