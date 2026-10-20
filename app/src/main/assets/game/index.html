@@ -85,6 +85,19 @@
   </div>
 </div>
 
+<script>
+// 老版本 WebView 不支持 import map（Chrome 89+ 才有），先给个明确提示，别白屏
+if (HTMLScriptElement.supports && !HTMLScriptElement.supports('importmap')) {
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.innerHTML =
+      '<pre style="color:#ff6b6b;background:#05070C;padding:28px;font:14px/1.7 monospace;white-space:pre-wrap">' +
+      '这个设备的 WebView 版本太旧，不支持 ES module import map，游戏无法启动。\n\n' +
+      '小米/红米：应用商店搜「Android System WebView」更新到最新；\n' +
+      '或者 设置 → 应用设置 → 应用管理 → Android System WebView → 卸载更新，再从应用商店更新一次。' +
+      '</pre>';
+  });
+}
+</script>
 <script type="importmap">
 {
   "imports": {

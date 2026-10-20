@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 只玩本地游戏，不联网、不读存储，所以没有任何权限声明 -->
+    <!-- 只连 127.0.0.1 的本地资源服务，但 Android 要求任何 socket 操作都必须有这个权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.gamepad" android:required="false" />
